@@ -1,0 +1,40 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+  background: rgba(currentColor, 0.08);
+}
+
+.badge--sm { font-size: 0.68rem; padding: 0.18rem 0.6rem; }
+.badge--md { font-size: 0.78rem; padding: 0.28rem 0.8rem; }
+
+.badge__dot {
+  display: block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.badge--active {
+  color: var(--glow-success);
+  box-shadow: var(--glow-spread-xs) rgba(46,213,115,0.3);
+}
+
+.badge--expiring_soon {
+  color: var(--glow-warning);
+  box-shadow: var(--glow-spread-xs) rgba(255,165,2,0.3);
+}
+.badge--expiring_soon.badge--pulse {
+  animation: badgePulse 1.8s ease-in-out infinite;
+}
+
+.badge--expired {
+  color: var(--glow-danger);
+  box-shadow: var(--glow-spread-xs) rgba(255,71,87,0.3);
+}

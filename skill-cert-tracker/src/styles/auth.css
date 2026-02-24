@@ -1,0 +1,192 @@
+/* ============================
+   AUTH PAGE — centered layout with background image
+   ============================ */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem 1rem 4rem;
+  background-image: url('/loginback.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+/* Uniform dark overlay for readability */
+.auth-page::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(13, 11, 8, 0.72);
+  pointer-events: none;
+}
+
+/* ============================
+   TOP LOGO (above the panel)
+   ============================ */
+.auth-top-logo {
+  position: relative;
+  z-index: 10;
+  width: 800px;
+  height: 300px;
+  object-fit: contain;
+  margin-bottom: 0.5rem;
+  animation: authLogoGlow 3s ease-in-out infinite;
+}
+
+@keyframes authLogoGlow {
+  0%, 100% { filter: drop-shadow(0 0 14px var(--glow-primary)); }
+  50%       { filter: drop-shadow(0 0 32px var(--glow-primary)) drop-shadow(0 0 56px var(--glow-secondary)); }
+}
+
+/* ============================
+   AUTH PANEL — centered glass card
+   ============================ */
+.auth-panel {
+  position: relative;
+  z-index: 10;
+  width: 420px;
+  background: rgba(13, 11, 8, 0.88);
+  backdrop-filter: blur(28px) saturate(1.7);
+  border: 1px solid var(--border-normal);
+  border-radius: var(--radius-xl);
+  box-shadow:
+    0 0 60px rgba(249,115,22,0.15),
+    0 24px 80px rgba(0,0,0,0.65);
+  overflow: hidden;
+  transition: height 480ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  animation: cardEntrance 600ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ============================
+   FORM AREA
+   ============================ */
+.auth-form-area {
+  padding: 1.75rem 1.75rem 2rem;
+}
+
+/* New form fades up on mount */
+.auth-form-area > form {
+  animation: formFadeUp 280ms ease both;
+}
+
+@keyframes formFadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================
+   FORM INTERNALS
+   ============================ */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+}
+
+.auth-form__title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.1rem;
+}
+
+.auth-form__subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: -0.4rem;
+}
+
+.auth-form__error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-md);
+  padding: 0.6rem 0.9rem;
+  font-size: 0.82rem;
+  color: var(--glow-danger);
+}
+
+.auth-form__divider {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+.auth-form__divider::before,
+.auth-form__divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-subtle);
+}
+
+/* ============================
+   ROLE SELECTOR
+   ============================ */
+.role-picker {
+  display: flex;
+  gap: 0.65rem;
+}
+
+.role-option {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem 0.5rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.83rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.role-option__icon {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  transition: color var(--transition-fast);
+}
+
+.role-option:hover {
+  border-color: var(--border-normal);
+  background: rgba(255,255,255,0.03);
+}
+
+.role-option--active {
+  border-color: var(--glow-primary);
+  background: rgba(249,115,22,0.1);
+  color: var(--glow-primary);
+  box-shadow: var(--glow-spread-sm) rgba(249,115,22,0.2);
+  transform: translateY(-2px);
+}
+
+.role-option--active .role-option__icon {
+  color: var(--glow-primary);
+}
+
+/* ============================
+   RESPONSIVE
+   ============================ */
+@media (max-width: 640px) {
+  .auth-page {
+    padding: 2rem 1rem;
+  }
+
+  .auth-panel {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .auth-top-logo {
+    width: 88px;
+    height: 88px;
+  }
+}

@@ -1,0 +1,142 @@
+﻿/* ============================
+   ALL KEYFRAME ANIMATIONS
+   ============================ */
+
+/* --- Auth card pop entrance --- */
+@keyframes cardEntrance {
+  from {
+    opacity: 0;
+    transform: scale(0.85) translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* --- Page enter slide --- */
+@keyframes pageEnter {
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* --- Modal pop --- */
+@keyframes modalPop {
+  from { opacity: 0; transform: scale(0.82) translateY(24px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+@keyframes modalClose {
+  to { opacity: 0; transform: scale(0.9) translateY(12px); }
+}
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes overlayFadeOut {
+  to { opacity: 0; }
+}
+
+/* --- Card stagger entrance --- */
+@keyframes cardSlideUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Timeline item reveal --- */
+@keyframes timelineReveal {
+  from { opacity: 0; transform: translateX(-24px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* --- Input pulse glow --- */
+@keyframes inputPulse {
+  0%, 100% { box-shadow: var(--glow-spread-sm) var(--glow-primary); }
+  50%       { box-shadow: var(--glow-spread-md) var(--glow-primary); }
+}
+
+/* --- Badge warning pulse --- */
+@keyframes badgePulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.55; }
+}
+
+/* --- Spin loader --- */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* --- Floating background orb --- */
+@keyframes orbFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(30px, -20px) scale(1.05); }
+  66%       { transform: translate(-20px, 20px) scale(0.97); }
+}
+
+/* --- Background mesh hue rotate --- */
+@keyframes meshShift {
+  0%   { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+/* --- Notification bell shake --- */
+@keyframes bellShake {
+  0%, 50%, 100% { transform: rotate(0deg); }
+  10%, 30%       { transform: rotate(-14deg); }
+  20%            { transform: rotate(14deg); }
+}
+
+/* --- Stat counter pop --- */
+@keyframes countPop {
+  from { opacity: 0; transform: scale(0.6); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* --- Drawer slide in from right --- */
+@keyframes drawerSlideIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+/* --- Tab indicator slide --- */
+@keyframes tabUnderline {
+  from { width: 0; opacity: 0; }
+  to   { width: 100%; opacity: 1; }
+}
+
+/* --- Glow pulse on active status badge --- */
+@keyframes glowPulseSuccess {
+  0%, 100% { box-shadow: var(--glow-spread-sm) var(--glow-success); }
+  50%       { box-shadow: var(--glow-spread-md) var(--glow-success); }
+}
+@keyframes glowPulseWarning {
+  0%, 100% { box-shadow: var(--glow-spread-sm) var(--glow-warning); }
+  50%       { box-shadow: var(--glow-spread-md) var(--glow-warning); }
+}
+@keyframes glowPulseDanger {
+  0%, 100% { box-shadow: var(--glow-spread-sm) var(--glow-danger); }
+  50%       { box-shadow: var(--glow-spread-md) var(--glow-danger); }
+}
+
+/* --- Upload zone hover pulse --- */
+@keyframes dropzonePulse {
+  0%, 100% { border-color: rgba(249,115,22,0.4); box-shadow: none; }
+  50%       { border-color: var(--glow-primary); box-shadow: var(--glow-spread-md) var(--glow-primary); }
+}
+
+/* --- Chart tooltip appear --- */
+@keyframes tooltipAppear {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Success checkmark draw --- */
+@keyframes checkmarkDraw {
+  from { stroke-dashoffset: 50; }
+  to   { stroke-dashoffset: 0; }
+}
+
+/* --- Empty state float --- */
+@keyframes emptyFloat {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}

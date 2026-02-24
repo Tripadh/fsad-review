@@ -1,0 +1,62 @@
+/* ============================================================
+   BLUE-DARK THEME BACKUP — CertTracker Pro
+   To restore: copy the :root block below back into globals.css
+   ============================================================ */
+
+/*
+:root {
+  --glow-primary: #6c63ff;
+  --glow-secondary: #00d4ff;
+  --glow-tertiary: #a855f7;
+  --glow-danger: #ff4757;
+  --glow-success: #2ed573;
+  --glow-warning: #ffa502;
+  --glow-info: #1e90ff;
+
+  --bg-base: #10102a;
+  --bg-dark: #16163a;
+  --bg-card: #1e1e48;
+  --bg-surface: #272760;
+  --bg-elevated: #303075;
+  --bg-hover: #3a3a88;
+
+  --text-primary: #f2f2ff;
+  --text-secondary: #b0b0e0;
+  --text-muted: #7878bb;
+  --text-accent: #7c75ff;
+
+  --border-subtle: rgba(124, 117, 255, 0.22);
+  --border-normal: rgba(124, 117, 255, 0.42);
+  --border-bright: rgba(124, 117, 255, 0.72);
+}
+
+Hardcoded color map (purple/blue → original values):
+  #6c63ff  = primary purple
+  #7c75ff  = text accent purple
+  #a99aff  = light lavender
+  #00d4ff  = cyan
+  #a855f7  = violet
+  rgba(108,99,255,X)   = primary purple with opacity
+  rgba(124,117,255,X)  = border purple with opacity
+  rgba(0,212,255,X)    = cyan with opacity
+
+FILES that had hardcoded values (need updating when reverting):
+  src/styles/globals.css
+  src/styles/intro.css
+  src/styles/auth.css
+  src/styles/dashboard.css
+  src/styles/cards.css
+  src/styles/admin.css
+  src/styles/modal.css
+  src/styles/animations.css
+  src/components/common/GlowButton.css
+  src/components/common/GlowInput.css
+  src/components/intro/IntroPage.jsx
+  src/components/intro/ParticleCanvas.jsx
+  src/charts/MonthlyActivityBarChart.jsx
+  src/charts/ExpirationBarChart.jsx
+  src/components/user/AchievementsTab.jsx
+  src/components/user/EventsTab.jsx
+  src/components/admin/UserDetailDrawer.jsx
+  src/context/AuthContext.jsx
+*/

@@ -1,0 +1,79 @@
+﻿.glow-input-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.glow-input-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.glow-input-required { color: var(--glow-danger); margin-left: 2px; }
+
+.glow-input-inner { position: relative; }
+
+.glow-input-icon {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+  font-size: 1rem;
+  z-index: 1;
+}
+
+.glow-input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  padding: 0.65rem 1rem;
+  font-size: 0.95rem;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    background var(--transition-fast);
+}
+
+.glow-input--has-icon { padding-left: 2.6rem; }
+
+.glow-input:hover {
+  border-color: var(--border-normal);
+  background: rgba(255,255,255,0.06);
+}
+
+.glow-input:focus {
+  border-color: var(--glow-primary);
+  background: rgba(249,115,22,0.06);
+  box-shadow: var(--glow-spread-sm) var(--glow-primary),
+              inset 0 0 12px rgba(249,115,22,0.06);
+  animation: inputPulse 2s ease-in-out infinite;
+}
+
+.glow-input::placeholder { color: var(--text-muted); }
+.glow-input:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.glow-input--textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.glow-input--error {
+  border-color: var(--glow-danger) !important;
+  box-shadow: var(--glow-spread-xs) var(--glow-danger) !important;
+}
+.glow-input--error:focus {
+  animation: none;
+}
+
+.glow-input-err {
+  font-size: 0.78rem;
+  color: var(--glow-danger);
+  margin-top: 0.1rem;
+}

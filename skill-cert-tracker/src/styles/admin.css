@@ -1,0 +1,245 @@
+﻿/* ============================
+   ADMIN-SPECIFIC STYLES
+   ============================ */
+
+/* ---- Admin layout ---- */
+.admin-dash { min-height: 100vh; background: var(--bg-base); }
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  height: 72px;
+  background: var(--bg-dark);
+  border-bottom: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.admin-header__brand {
+  display: flex; align-items: center; gap: 0.6rem;
+  font-size: 1.1rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--glow-warning), var(--glow-danger));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.admin-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--glow-warning);
+  border: 1px solid var(--glow-warning);
+  border-radius: var(--radius-full);
+  padding: 0.15rem 0.55rem;
+  box-shadow: var(--glow-spread-xs) rgba(255,165,2,0.3);
+}
+
+/* ---- Admin sections ---- */
+.admin-main {
+  padding: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.admin-section {
+  margin-bottom: 2rem;
+}
+.admin-section__title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.admin-section__title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-subtle);
+}
+
+/* ---- Users panel ---- */
+.users-panel__search {
+  margin-bottom: 1rem;
+}
+.users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.user-row {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  transition: all var(--transition-fast);
+  animation: cardSlideUp 350ms ease both;
+  animation-delay: calc(var(--row-index, 0) * 50ms);
+}
+.user-row:hover {
+  border-color: var(--border-normal);
+  box-shadow: var(--shadow-card);
+  transform: translateX(4px);
+}
+.user-row__info { flex: 1; }
+.user-row__name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.user-row__email {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+.user-row__stats {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.cert-count-badge {
+  background: rgba(249,115,22,0.12);
+  border: 1px solid rgba(249,115,22,0.25);
+  color: var(--glow-primary);
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.15rem 0.55rem;
+}
+
+/* ---- Expiration table ---- */
+.expiry-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.expiry-table th {
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.expiry-table td {
+  padding: 0.85rem 1rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+.expiry-table tr:last-child td { border-bottom: none; }
+.expiry-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+.days-cell {
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+.days-cell--critical { color: var(--glow-danger); }
+.days-cell--warning  { color: var(--glow-warning); }
+.days-cell--safe     { color: var(--glow-success); }
+.days-cell--expired  { color: var(--glow-danger); opacity: 0.7; }
+
+/* ---- User detail drawer ---- */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  z-index: 300;
+  animation: overlayFadeIn 200ms ease;
+}
+.user-drawer {
+  position: fixed;
+  right: 0; top: 0; bottom: 0;
+  width: min(480px, 100vw);
+  background: var(--bg-card);
+  border-left: 1px solid var(--border-normal);
+  box-shadow: -8px 0 40px rgba(249,115,22,0.15);
+  z-index: 301;
+  display: flex;
+  flex-direction: column;
+  animation: drawerSlideIn 350ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  overflow: hidden;
+}
+.user-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+.user-drawer__close {
+  background: none;
+  border: 1.5px solid var(--border-subtle);
+  color: var(--text-secondary);
+  width: 32px; height: 32px;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem;
+  transition: all var(--transition-fast);
+}
+.user-drawer__close:hover {
+  border-color: var(--glow-danger);
+  color: var(--glow-danger);
+}
+.user-drawer__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+.user-drawer__section-title {
+  font-size: 0.78rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin: 1.25rem 0 0.75rem;
+}
+.user-drawer__section-title:first-child { margin-top: 0; }
+
+/* ---- Renewal form ---- */
+.renewal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* ---- Admin nav tabs ---- */
+.admin-nav {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.75rem 1.5rem 0;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-dark);
+}
+.admin-nav-tab {
+  padding: 0.65rem 1.25rem;
+  background: none;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  border: 1px solid transparent;
+  border-bottom: none;
+  transition: all var(--transition-fast);
+}
+.admin-nav-tab:hover { color: var(--text-secondary); background: rgba(255,255,255,0.02); }
+.admin-nav-tab--active {
+  color: var(--glow-warning);
+  background: var(--bg-card);
+  border-color: var(--border-normal);
+  border-bottom-color: var(--bg-card);
+  margin-bottom: -1px;
+}
