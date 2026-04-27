@@ -3,6 +3,8 @@ import { useData } from '../../context/DataContext';
 import { getPast6Months, getMonthKey } from '../../utils/dateUtils';
 import CertStatusPieChart from '../../charts/CertStatusPieChart';
 import MonthlyActivityBarChart from '../../charts/MonthlyActivityBarChart';
+import SuggestionsCard from './SuggestionsCard';
+import ReminderPanel from './ReminderPanel';
 
 export default function OverviewPanel() {
   const { currentUser } = useAuth();
@@ -13,6 +15,13 @@ export default function OverviewPanel() {
   return (
     <div className="overview-panel">
       <div className="overview-panel__title">Overview</div>
+      
+      {/* Reminders - Most Urgent */}
+      <ReminderPanel />
+      
+      {/* Suggestions Section - High Priority */}
+      <SuggestionsCard />
+      
       <div className="overview-charts">
         <div className="chart-card">
           <div className="chart-card__title">📊 Certification Status</div>

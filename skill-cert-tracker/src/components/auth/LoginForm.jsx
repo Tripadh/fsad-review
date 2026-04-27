@@ -22,7 +22,7 @@ export default function LoginForm({ onSwitchToRegister }) {
     }
     setLoading(true);
     try {
-      const user = login(email, password);
+      const user = await login(email, password);
       navigate(user.role === 'admin' ? '/admin' : '/user', { replace: true });
     } catch (err) {
       setError(err.message);

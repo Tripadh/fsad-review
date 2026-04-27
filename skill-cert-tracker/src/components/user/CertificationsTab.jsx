@@ -27,9 +27,13 @@ export default function CertificationsTab() {
     return matchesSearch && matchesStatus;
   });
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Delete this certification? This action cannot be undone.')) {
-      deleteCert(id);
+      try {
+        await deleteCert(id);
+      } catch (err) {
+        window.alert(err.message || 'Failed to delete certification.');
+      }
     }
   };
 
@@ -108,7 +112,7 @@ export default function CertificationsTab() {
               index={index}
               onView={() => setViewCert(cert)}
               onEdit={() => handleEdit(cert)}
-              onDelete={() => handleDelete(cert.id)}
+              onDelete={async () => handleDelete(cert.id)}
             />
           ))}
         </div>

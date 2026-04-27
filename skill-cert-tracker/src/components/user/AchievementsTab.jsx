@@ -40,15 +40,20 @@ export default function AchievementsTab() {
     return errs;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const errs = validate();
     setErrors(errs);
     if (Object.keys(errs).length) return;
     setSaving(true);
-    addAchievement({ ...form, userId: currentUser.id });
-    setSaving(false);
-    setShowForm(false);
-    setForm({ title: '', type: 'achievement', description: '', date: todayISO() });
+    try {
+      await addAchievement({ ...form, userId: currentUser.id });
+      setShowForm(false);
+      setForm({ title: '', type: 'achievement', description: '', date: todayISO() });
+    } catch (err) {
+      setErrors(prev => ({ ...prev, title: err.message || 'Failed to save achievement.' }));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

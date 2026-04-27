@@ -5,6 +5,7 @@ import AuthPage from '../components/auth/AuthPage';
 import UserDashboard from '../components/user/UserDashboard';
 import AdminDashboard from '../components/admin/AdminDashboard';
 import IntroPage from '../components/intro/IntroPage';
+import PublicPortfolio from '../components/portfolio/PublicPortfolio';
 
 export default function AppRouter() {
   const { currentUser } = useAuth();
@@ -21,6 +22,9 @@ export default function AppRouter() {
               : <IntroPage />
           }
         />
+
+        {/* Public Routes */}
+        <Route path="/portfolio/:userId" element={<PublicPortfolio />} />
 
         <Route path="/auth" element={
           currentUser

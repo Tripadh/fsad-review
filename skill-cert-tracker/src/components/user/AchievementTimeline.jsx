@@ -11,8 +11,15 @@ const TYPE_META = {
 export default function AchievementTimeline({ items }) {
   const { deleteAchievement } = useData();
 
-  const handleDelete = (id) => {
-    if (window.confirm('Delete this entry?')) deleteAchievement(id);
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this entry?')) {
+      return;
+    }
+    try {
+      await deleteAchievement(id);
+    } catch (err) {
+      window.alert(err.message || 'Failed to delete entry.');
+    }
   };
 
   return (
@@ -34,7 +41,7 @@ export default function AchievementTimeline({ items }) {
                 {meta.icon} {meta.label}
               </div>
               <div className="timeline-card__actions">
-                <GlowButton variant="danger" size="sm" onClick={() => handleDelete(item.id)}>
+                <GlowButton variant="danger" size="sm" onClick={async () => handleDelete(item.id)}>
                   🗑 Delete
                 </GlowButton>
               </div>

@@ -35,15 +35,20 @@ export default function EventsTab() {
     return errs;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const errs = validate();
     setErrors(errs);
     if (Object.keys(errs).length) return;
     setSaving(true);
-    addAchievement({ ...form, type: 'event', userId: currentUser.id });
-    setSaving(false);
-    setShowForm(false);
-    setForm({ title: '', type: 'event', description: '', date: todayISO() });
+    try {
+      await addAchievement({ ...form, type: 'event', userId: currentUser.id });
+      setShowForm(false);
+      setForm({ title: '', type: 'event', description: '', date: todayISO() });
+    } catch (err) {
+      setErrors(prev => ({ ...prev, title: err.message || 'Failed to save event.' }));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

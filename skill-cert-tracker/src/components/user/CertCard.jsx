@@ -2,6 +2,8 @@ import Badge from '../common/Badge';
 import GlowButton from '../common/GlowButton';
 import { formatDate, daysUntilExpiry } from '../../utils/dateUtils';
 import { getFileIcon } from '../../utils/fileUtils';
+import { getExternalVerificationUrl } from '../../utils/certUtils';
+import VerificationBadge from '../common/VerificationBadge';
 
 export default function CertCard({ cert, index, onView, onEdit, onDelete }) {
   const days = cert.expiryDate ? daysUntilExpiry(cert.expiryDate) : null;
@@ -21,14 +23,21 @@ export default function CertCard({ cert, index, onView, onEdit, onDelete }) {
     return `${days} days left`;
   };
 
+  const extVerifyUrl = getExternalVerificationUrl(cert.issuer, cert.credentialId);
+
   return (
     <div className="cert-card" style={{ '--card-index': index }}>
       <div className="cert-card__header">
         <div>
-          <div className="cert-card__title">{cert.title}</div>
+          <div className="cert-card__title">
+            {cert.title}
+          </div>
           <div className="cert-card__issuer">{cert.issuer}</div>
         </div>
-        <Badge status={cert.status} pulse />
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.4rem' }}>
+          <Badge status={cert.status} pulse />
+          <VerificationBadge status={cert.verificationStatus} size="sm" />
+        </div>
       </div>
 
       <div className="cert-card__meta">
@@ -62,6 +71,19 @@ export default function CertCard({ cert, index, onView, onEdit, onDelete }) {
           <span>{getFileIcon(cert.documentMimeType)}</span>
           <span className="truncate">{cert.documentName || 'View Document'}</span>
         </button>
+      )}
+
+      {extVerifyUrl && (
+        <a 
+          href={extVerifyUrl} 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="cert-card__doc-preview" 
+          style={{ marginTop: cert.documentBase64 ? '0' : undefined, background: 'rgba(59,130,246,0.1)', color: '#60a5fa', borderColor: 'rgba(59,130,246,0.3)' }}
+        >
+          <span>🔗</span>
+          <span className="truncate">Verify from {cert.issuer}</span>
+        </a>
       )}
 
       <div className="cert-card__actions">

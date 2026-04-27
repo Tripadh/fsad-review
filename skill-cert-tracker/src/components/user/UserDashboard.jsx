@@ -5,11 +5,13 @@ import OverviewPanel from './OverviewPanel';
 import CertificationsTab from './CertificationsTab';
 import AchievementsTab from './AchievementsTab';
 import EventsTab from './EventsTab';
+import CertificationCalendar from './CertificationCalendar';
 
 const TABS = [
   { id: 'overview',      label: '📊 Overview' },
   { id: 'certs',         label: '🎓 Certifications' },
   { id: 'achievements',  label: '🏆 Achievements' },
+  { id: 'calendar',      label: '📅 Calendar' },
   { id: 'events',        label: '📅 Events' },
 ];
 
@@ -36,6 +38,7 @@ export default function UserDashboard() {
         {activeTab === 'overview'     && <OverviewPanel />}
         {activeTab === 'certs'        && <CertificationsTab />}
         {activeTab === 'achievements' && <AchievementsTab />}
+        {activeTab === 'calendar'     && <CertificationCalendar />}
         {activeTab === 'events'       && <EventsTab />}
       </main>
     </div>

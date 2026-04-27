@@ -5,12 +5,14 @@ import AdminHeader from './AdminHeader';
 import AdminOverview from './AdminOverview';
 import UsersPanel from './UsersPanel';
 import ExpirationTracker from './ExpirationTracker';
+import VerificationQueue from './VerificationQueue';
 import '../../styles/dashboard.css';
 import '../../styles/admin.css';
 
 const TABS = [
   { id: 'overview',    label: '📊 Overview' },
   { id: 'users',       label: '👥 Users' },
+  { id: 'verification',label: '🛡️ Verification Queue' },
   { id: 'expiration',  label: '⏰ Expiration Tracker' },
 ];
 
@@ -50,6 +52,13 @@ export default function AdminDashboard() {
           <div className="admin-section">
             <div className="admin-section__title">All Users</div>
             <UsersPanel allUsers={allUsers} allCerts={allCerts} />
+          </div>
+        )}
+
+        {activeTab === 'verification' && (
+          <div className="admin-section">
+            <div className="admin-section__title">Verification Queue</div>
+            <VerificationQueue allUsers={allUsers} allCerts={allCerts} />
           </div>
         )}
 

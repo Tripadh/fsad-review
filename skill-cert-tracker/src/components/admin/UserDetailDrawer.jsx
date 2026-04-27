@@ -1,11 +1,19 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import Badge from '../common/Badge';
 import GlowButton from '../common/GlowButton';
 import { formatDate } from '../../utils/dateUtils';
 import { getFileIcon } from '../../utils/fileUtils';
+import { useData } from '../../context/DataContext';
+import VerificationBadge from '../common/VerificationBadge';
+import { getExternalVerificationUrl } from '../../utils/certUtils';
 
-export default function UserDetailDrawer({ user, certs, onClose }) {
+export default function UserDetailDrawer({ user, certs: initialCerts, onClose }) {
   const [viewingDoc, setViewingDoc] = useState(null); // cert whose doc is being viewed
+  const { updateCert } = useData();
+
+  // Re-derive certs so UI updates when status changes without a reload
+  const { getAllCerts } = useData();
+  const certs = getAllCerts().filter(c => c.userId === user.id);
 
   return (
     <>
@@ -64,6 +72,9 @@ export default function UserDetailDrawer({ user, certs, onClose }) {
                     <div style={{ flex:1 }}>
                       <div style={{ fontWeight:700, color:'var(--text-primary)', fontSize:'0.9rem' }}>{cert.title}</div>
                       <div style={{ fontSize:'0.76rem', color:'var(--text-muted)' }}>{cert.issuer}</div>
+                      <div style={{ marginTop: '0.4rem' }}>
+                        <VerificationBadge status={cert.verificationStatus} size="sm" />
+                      </div>
                     </div>
                     <Badge status={cert.status} size="sm" pulse />
                   </div>
@@ -106,6 +117,23 @@ export default function UserDetailDrawer({ user, certs, onClose }) {
                       No document attached
                     </div>
                   )}
+
+                  {/* Verification Actions */}
+                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-subtle)' }}>
+                    {getExternalVerificationUrl(cert.issuer, cert.credentialId) && (
+                      <a 
+                        href={getExternalVerificationUrl(cert.issuer, cert.credentialId)} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        style={{ fontSize: '0.75rem', color: '#60a5fa', textDecoration: 'none', background: 'rgba(59,130,246,0.1)', padding: '0.25rem 0.5rem', borderRadius: 'var(--radius-sm)' }}
+                      >
+                        🔗 Verify Source
+                      </a>
+                    )}
+                    <GlowButton variant="success" size="sm" onClick={() => updateCert(cert.id, { verificationStatus: 'verified' })}>✅</GlowButton>
+                    <GlowButton variant="danger" size="sm" onClick={() => updateCert(cert.id, { verificationStatus: 'rejected' })}>❌</GlowButton>
+                    <GlowButton variant="secondary" size="sm" onClick={() => updateCert(cert.id, { verificationStatus: 'pending' })}>⏳</GlowButton>
+                  </div>
                 </div>
               ))}
             </div>

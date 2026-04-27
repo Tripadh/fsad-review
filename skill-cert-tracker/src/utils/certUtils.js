@@ -35,3 +35,36 @@ export function getExpirationBucket(expiryDate) {
   if (days <= 90) return 'lt_90';
   return 'gt_90';
 }
+
+/**
+ * Attempt to generate an external verification URL based on the issuer and credential ID.
+ */
+export function getExternalVerificationUrl(issuer, credentialId) {
+  if (!issuer || !credentialId) return null;
+  const iss = issuer.toLowerCase();
+  const id = encodeURIComponent(credentialId);
+
+  if (iss.includes('coursera')) {
+    return `https://www.coursera.org/account/accomplishments/verify/${id}`;
+  }
+  if (iss.includes('google') || iss.includes('gcp')) {
+    return `https://www.credential.net/${id}`;
+  }
+  if (iss.includes('aws') || iss.includes('amazon')) {
+    return `https://aws.amazon.com/verification`; // Note: AWS usually requires lookup
+  }
+  if (iss.includes('microsoft')) {
+    return `https://learn.microsoft.com/en-us/users/me/credentials/${id}`;
+  }
+  if (iss.includes('hackerrank')) {
+    return `https://www.hackerrank.com/certificates/${id}`;
+  }
+  if (iss.includes('cisco')) {
+    return `https://www.credly.com/badges/${id}`;
+  }
+  if (iss.includes('comptia')) {
+    return `https://www.certmetrics.com/comptia/public/verification.aspx?code=${id}`;
+  }
+  
+  return null;
+}

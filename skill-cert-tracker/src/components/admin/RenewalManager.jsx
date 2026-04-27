@@ -22,23 +22,33 @@ export default function RenewalManager({ isOpen, onClose, cert, user }) {
 
   if (!cert) return null;
 
-  const handleRenew = () => {
+  const handleRenew = async () => {
     if (!newExpiry) {
       setErrors({ newExpiry: 'New expiry date is required.' });
       return;
     }
     setSaving(true);
-    markRenewed(cert.id, newExpiry, note, currentUser.id);
-    setSaving(false);
-    onClose();
+    try {
+      await markRenewed(cert.id, newExpiry, note, currentUser.id);
+      onClose();
+    } catch (err) {
+      setErrors({ newExpiry: err.message || 'Failed to renew certification.' });
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleSendNotice = () => {
+  const handleSendNotice = async () => {
     if (!notifMsg.trim()) return;
     setSending(true);
-    sendNotification(cert.userId, cert.id, notifMsg.trim(), currentUser.id);
-    setSending(false);
-    onClose();
+    try {
+      await sendNotification(cert.userId, cert.id, notifMsg.trim(), currentUser.id);
+      onClose();
+    } catch (err) {
+      setErrors({ newExpiry: err.message || 'Failed to send notification.' });
+    } finally {
+      setSending(false);
+    }
   };
 
   return (

@@ -43,7 +43,7 @@ export default function RegisterForm({ onSwitchToLogin }) {
     if (Object.keys(errs).length) return;
     setLoading(true);
     try {
-      const user = register(username.trim(), email.trim(), password, role);
+      const user = await register(username.trim(), email.trim(), password, role);
       navigate(user.role === 'admin' ? '/admin' : '/user', { replace: true });
     } catch (err) {
       setError(err.message);

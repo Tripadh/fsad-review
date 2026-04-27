@@ -1,51 +1,100 @@
-import { createContext, useContext, useCallback } from 'react';
-import { useLocalStorage } from '../hooks/useLocalStorage';
-import { generateId } from '../utils/idUtils';
+import { createContext, useContext, useCallback, useEffect, useState } from 'react';
+import { request } from '../utils/apiClient';
+import { useAuth } from './AuthContext';
 import { deriveCertStatus } from '../utils/certUtils';
 import { getMonthKey } from '../utils/dateUtils';
 
 const DataContext = createContext(null);
 
 export function DataProvider({ children }) {
-  const [certifications, setCertifications] = useLocalStorage('sct_certifications', []);
-  const [achievements,   setAchievements]   = useLocalStorage('sct_achievements', []);
-  const [notifications,  setNotifications]  = useLocalStorage('sct_notifications', []);
+  const { currentUser, updateCurrentUserPoints } = useAuth();
+  const [certifications, setCertifications] = useState([]);
+  const [achievements, setAchievements] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+
+  const loadCertifications = useCallback(async () => {
+    if (!currentUser) {
+      setCertifications([]);
+      return;
+    }
+    const certs = currentUser.role === 'admin'
+      ? await request('/certifications')
+      : await request(`/certifications/user/${currentUser.id}`);
+    setCertifications(certs || []);
+  }, [currentUser]);
+
+  const loadAchievements = useCallback(async () => {
+    if (!currentUser) {
+      setAchievements([]);
+      return;
+    }
+    const items = await request(`/achievements/user/${currentUser.id}`);
+    setAchievements(items || []);
+  }, [currentUser]);
+
+  const loadNotifications = useCallback(async () => {
+    if (!currentUser) {
+      setNotifications([]);
+      return;
+    }
+    const notes = await request(`/notifications/user/${currentUser.id}`);
+    setNotifications(notes || []);
+  }, [currentUser]);
+
+  useEffect(() => {
+    if (!currentUser) {
+      setCertifications([]);
+      setAchievements([]);
+      setNotifications([]);
+      return;
+    }
+
+    Promise.all([
+      loadCertifications(),
+      loadAchievements(),
+      loadNotifications(),
+    ]).catch(err => {
+      console.error('Failed to load app data', err);
+    });
+  }, [currentUser, loadAchievements, loadCertifications, loadNotifications]);
 
   /* ---- CERTIFICATIONS ---- */
-  const addCert = useCallback((payload) => {
-    const cert = {
-      id: generateId(),
-      userId: payload.userId,
-      title: payload.title,
-      issuer: payload.issuer,
-      credentialId: payload.credentialId || '',
-      issueDate: payload.issueDate,
-      expiryDate: payload.expiryDate || null,
-      documentBase64: payload.documentBase64 || null,
-      documentName: payload.documentName || null,
-      documentMimeType: payload.documentMimeType || null,
-      tags: payload.tags || [],
-      renewalHistory: [],
-      notified: false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+  const addCert = useCallback(async (payload) => {
+    const cert = await request('/certifications', {
+      method: 'POST',
+      body: payload,
+    });
     setCertifications(prev => [cert, ...prev]);
+    if (cert.verificationStatus === 'verified' && updateCurrentUserPoints) {
+      updateCurrentUserPoints(100);
+    }
     return cert;
-  }, [setCertifications]);
+  }, [updateCurrentUserPoints]);
 
-  const updateCert = useCallback((id, changes) => {
+  const updateCert = useCallback(async (id, changes) => {
+    const previous = certifications.find(c => c.id === id);
+    const updated = await request(`/certifications/${id}`, {
+      method: 'PUT',
+      body: changes,
+    });
     setCertifications(prev =>
       prev.map(c => c.id === id
-        ? { ...c, ...changes, updatedAt: new Date().toISOString() }
+        ? updated
         : c
       )
     );
-  }, [setCertifications]);
+    if (previous && previous.verificationStatus !== 'verified' && updated.verificationStatus === 'verified' && updateCurrentUserPoints) {
+      updateCurrentUserPoints(100);
+    }
+    return updated;
+  }, [certifications, updateCurrentUserPoints]);
 
-  const deleteCert = useCallback((id) => {
+  const deleteCert = useCallback(async (id) => {
+    await request(`/certifications/${id}`, {
+      method: 'DELETE',
+    });
     setCertifications(prev => prev.filter(c => c.id !== id));
-  }, [setCertifications]);
+  }, []);
 
   const getCertsByUser = useCallback((userId) => {
     return certifications
@@ -58,28 +107,31 @@ export function DataProvider({ children }) {
   }, [certifications]);
 
   /* ---- ACHIEVEMENTS ---- */
-  const addAchievement = useCallback((payload) => {
-    const item = {
-      id: generateId(),
-      userId: payload.userId,
-      title: payload.title,
-      type: payload.type || 'achievement',
-      description: payload.description || '',
-      date: payload.date,
-      icon: payload.icon || 'trophy',
-      createdAt: new Date().toISOString(),
-    };
+  const addAchievement = useCallback(async (payload) => {
+    const item = await request('/achievements', {
+      method: 'POST',
+      body: payload,
+    });
     setAchievements(prev => [item, ...prev]);
+    if (updateCurrentUserPoints) updateCurrentUserPoints(50);
     return item;
-  }, [setAchievements]);
+  }, [updateCurrentUserPoints]);
 
-  const updateAchievement = useCallback((id, changes) => {
-    setAchievements(prev => prev.map(a => a.id === id ? { ...a, ...changes } : a));
-  }, [setAchievements]);
+  const updateAchievement = useCallback(async (id, changes) => {
+    const updated = await request(`/achievements/${id}`, {
+      method: 'PUT',
+      body: changes,
+    });
+    setAchievements(prev => prev.map(a => a.id === id ? updated : a));
+    return updated;
+  }, []);
 
-  const deleteAchievement = useCallback((id) => {
+  const deleteAchievement = useCallback(async (id) => {
+    await request(`/achievements/${id}`, {
+      method: 'DELETE',
+    });
     setAchievements(prev => prev.filter(a => a.id !== id));
-  }, [setAchievements]);
+  }, []);
 
   const getAchievementsByUser = useCallback((userId) => {
     return achievements
@@ -88,34 +140,43 @@ export function DataProvider({ children }) {
   }, [achievements]);
 
   /* ---- NOTIFICATIONS ---- */
-  const sendNotification = useCallback((toUserId, certId, message, senderAdminId) => {
-    const note = {
-      id: generateId(),
-      recipientUserId: toUserId,
-      senderAdminId,
-      type: 'renewal_notice',
-      message,
-      relatedCertId: certId,
-      read: false,
-      createdAt: new Date().toISOString(),
-    };
-    setNotifications(prev => [note, ...prev]);
-    // mark cert as notified
+  const sendNotification = useCallback(async (toUserId, certId, message, senderAdminId) => {
+    const note = await request('/notifications', {
+      method: 'POST',
+      body: {
+        recipientUserId: toUserId,
+        senderAdminId,
+        type: 'renewal_notice',
+        message,
+        relatedCertId: certId,
+      },
+    });
+
+    if (currentUser?.id === toUserId) {
+      setNotifications(prev => [note, ...prev]);
+    }
+
     setCertifications(prev =>
-      prev.map(c => c.id === certId ? { ...c, notified: true } : c)
+      prev.map(c => c.id === certId ? { ...c, notified: true, updatedAt: new Date().toISOString() } : c)
     );
     return note;
-  }, [setNotifications, setCertifications]);
+  }, [currentUser]);
 
-  const markNotificationRead = useCallback((id) => {
+  const markNotificationRead = useCallback(async (id) => {
+    await request(`/notifications/${id}/read`, {
+      method: 'PUT',
+    });
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-  }, [setNotifications]);
+  }, []);
 
-  const markAllNotificationsRead = useCallback((userId) => {
+  const markAllNotificationsRead = useCallback(async (userId) => {
+    await request(`/notifications/user/${userId}/read-all`, {
+      method: 'PUT',
+    });
     setNotifications(prev =>
       prev.map(n => n.recipientUserId === userId ? { ...n, read: true } : n)
     );
-  }, [setNotifications]);
+  }, []);
 
   const getNotificationsForUser = useCallback((userId) => {
     return notifications
@@ -124,25 +185,27 @@ export function DataProvider({ children }) {
   }, [notifications]);
 
   /* ---- RENEWAL ---- */
-  const markRenewed = useCallback((certId, newExpiryDate, note, adminId) => {
+  const markRenewed = useCallback(async (certId, newExpiryDate, note, adminId) => {
+    const updated = await request(`/certifications/${certId}/renew`, {
+      method: 'POST',
+      body: {
+        newExpiryDate,
+        note,
+        adminId,
+      },
+    });
+
     setCertifications(prev => prev.map(c => {
-      if (c.id !== certId) return c;
-      const renewal = {
-        renewedAt: new Date().toISOString(),
-        renewedBy: adminId,
-        previousExpiry: c.expiryDate,
-        newExpiry: newExpiryDate,
-        note: note || '',
-      };
+      if (c.id !== certId) {
+        return c;
+      }
       return {
-        ...c,
-        expiryDate: newExpiryDate,
-        renewalHistory: [...(c.renewalHistory || []), renewal],
-        notified: false,
-        updatedAt: new Date().toISOString(),
+        ...updated,
+        renewalHistory: c.renewalHistory || [],
       };
     }));
-  }, [setCertifications]);
+    return updated;
+  }, []);
 
   /* ---- ADMIN STATS ---- */
   const getSystemStats = useCallback((allUsers) => {
@@ -174,6 +237,9 @@ export function DataProvider({ children }) {
     certifications,
     achievements,
     notifications,
+    loadCertifications,
+    loadAchievements,
+    loadNotifications,
     addCert,
     updateCert,
     deleteCert,

@@ -1,6 +1,6 @@
-﻿import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { generateId } from '../utils/idUtils';
+import { request } from '../utils/apiClient';
 
 const AuthContext = createContext(null);
 
@@ -9,92 +9,105 @@ const AVATAR_COLORS = [
   '#ffa502', '#ff4757', '#ff6b9d', '#26de81',
 ];
 
-function hashPassword(password) {
-  // Demo-grade hash — not production safe
-  return btoa(password + '_sct_salt_2024');
+function normalizeUser(user) {
+  if (!user) return null;
+  return {
+    ...user,
+    role: user.role?.toLowerCase(),
+  };
 }
 
-const DEMO_ADMIN = {
-  id: 'admin-default-001',
-  username: 'Admin',
-  email: 'admin@certtracker.com',
-  passwordHash: hashPassword('admin123'),
-  role: 'admin',
-  createdAt: new Date().toISOString(),
-  avatarColor: '#f97316',
-};
-
 export function AuthProvider({ children }) {
-  const [users, setUsers]     = useLocalStorage('sct_users', [DEMO_ADMIN]);
+  const [users, setUsers]     = useState([]);
   const [session, setSession] = useLocalStorage('sct_session', null);
-  const [currentUser, setCurrentUser] = useState(session);
+  const [currentUser, setCurrentUser] = useState(normalizeUser(session?.user));
 
-  // Sync in-memory state from stored session on mount
+  // Keep in-memory auth state aligned with stored session.
   useEffect(() => {
-    setCurrentUser(session);
-  }, []);
+    setCurrentUser(normalizeUser(session?.user));
+  }, [session]);
 
-  const register = useCallback((username, email, password, role) => {
-    // Validate uniqueness
-    if (users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
-      throw new Error('An account with this email already exists.');
-    }
-    if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
-      throw new Error('This username is already taken.');
-    }
+  const register = useCallback(async (username, email, password, role) => {
+    const auth = await request('/auth/register', {
+      method: 'POST',
+      body: {
+        username: username.trim(),
+        email: email.trim(),
+        password,
+        role,
+        avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
+      },
+    });
 
-    const newUser = {
-      id: generateId(),
-      username: username.trim(),
-      email: email.trim().toLowerCase(),
-      passwordHash: hashPassword(password),
-      role,
-      createdAt: new Date().toISOString(),
-      avatarColor: AVATAR_COLORS[Math.floor(Math.random() * AVATAR_COLORS.length)],
+    const sessionData = {
+      token: auth.token,
+      user: normalizeUser(auth.user),
     };
 
-    setUsers(prev => [...prev, newUser]);
+    setSession(sessionData);
+    setCurrentUser(sessionData.user);
+    return sessionData.user;
+  }, [setSession]);
 
-    const sessionUser = { ...newUser };
-    delete sessionUser.passwordHash;
-    setSession(sessionUser);
-    setCurrentUser(sessionUser);
-    return sessionUser;
-  }, [users, setUsers, setSession]);
+  const login = useCallback(async (email, password) => {
+    const auth = await request('/auth/login', {
+      method: 'POST',
+      body: {
+        email: email.trim(),
+        password,
+      },
+    });
 
-  const login = useCallback((email, password) => {
-    const user = users.find(u => u.email.toLowerCase() === email.trim().toLowerCase());
-    if (!user) throw new Error('No account found with this email.');
-    if (user.passwordHash !== hashPassword(password)) {
-      throw new Error('Incorrect password. Please try again.');
-    }
+    const sessionData = {
+      token: auth.token,
+      user: normalizeUser(auth.user),
+    };
 
-    const sessionUser = { ...user };
-    delete sessionUser.passwordHash;
-    setSession(sessionUser);
-    setCurrentUser(sessionUser);
-    return sessionUser;
-  }, [users, setSession]);
+    setSession(sessionData);
+    setCurrentUser(sessionData.user);
+    return sessionData.user;
+  }, [setSession]);
 
   const logout = useCallback(() => {
     setSession(null);
     setCurrentUser(null);
+    setUsers([]);
   }, [setSession]);
 
+  const loadUsers = useCallback(async () => {
+    const allUsers = await request('/users');
+    setUsers(allUsers.map(normalizeUser));
+  }, []);
+
+  useEffect(() => {
+    if (currentUser?.role === 'admin') {
+      loadUsers().catch(err => console.error('Failed to load users', err));
+      return;
+    }
+    setUsers([]);
+  }, [currentUser, loadUsers]);
+
   const getAllUsersForAdmin = useCallback(() => {
-    return users.map(u => {
-      const safe = { ...u };
-      delete safe.passwordHash;
-      return safe;
-    });
+    return users;
   }, [users]);
+
+  const updateCurrentUserPoints = useCallback((pointsToAdd) => {
+    setCurrentUser(prev => {
+      if (!prev) return prev;
+      const updatedUser = { ...prev, points: (prev.points || 0) + pointsToAdd };
+      setSession(prevSession => ({ ...prevSession, user: updatedUser }));
+      return updatedUser;
+    });
+  }, [setSession]);
 
   const value = {
     currentUser,
     login,
     logout,
     register,
+    loadUsers,
     getAllUsersForAdmin,
+    updateCurrentUserPoints,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

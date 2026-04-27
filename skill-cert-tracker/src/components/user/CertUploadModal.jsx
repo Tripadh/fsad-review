@@ -4,6 +4,7 @@ import GlowInput from '../common/GlowInput';
 import GlowButton from '../common/GlowButton';
 import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
+import { request } from '../../utils/apiClient';
 import { fileToBase64, formatFileSize } from '../../utils/fileUtils';
 import { todayISO } from '../../utils/dateUtils';
 import '../../styles/modal.css';
@@ -29,8 +30,10 @@ export default function CertUploadModal({ isOpen, onClose, editCert }) {
   const [docSize,    setDocSize]    = useState(null);
   const [dragOver,   setDragOver]   = useState(false);
   const [fileError,  setFileError]  = useState('');
+  const [scanInfo,   setScanInfo]   = useState('');
   const [formErrors, setFormErrors] = useState({});
   const [saving,     setSaving]     = useState(false);
+  const [scanning,   setScanning]   = useState(false);
 
   const fileInput = useRef(null);
 
@@ -41,6 +44,7 @@ export default function CertUploadModal({ isOpen, onClose, editCert }) {
 
   const handleFile = async (file) => {
     setFileError('');
+    setScanInfo('');
     try {
       const b64 = await fileToBase64(file);
       setDocBase64(b64);
@@ -49,6 +53,49 @@ export default function CertUploadModal({ isOpen, onClose, editCert }) {
       setDocSize(file.size);
     } catch (err) {
       setFileError(err.message);
+    }
+  };
+
+  const handleAutoScan = async () => {
+    if (!docBase64) {
+      setFileError('Please upload a certificate document first.');
+      return;
+    }
+
+    setScanning(true);
+    setFileError('');
+    setScanInfo('Scanning your certificate...');
+
+    try {
+      const result = await request('/certifications/scan', {
+        method: 'POST',
+        body: {
+          documentBase64: docBase64,
+          documentName: docName,
+          documentMimeType: docMime,
+        },
+      });
+
+      const suggested = result?.suggestions || {};
+      setForm(prev => ({
+        ...prev,
+        title: suggested.title || prev.title,
+        issuer: suggested.issuer || prev.issuer,
+        credentialId: suggested.credentialId || prev.credentialId,
+        issueDate: suggested.issueDate || prev.issueDate,
+        expiryDate: suggested.expiryDate || prev.expiryDate,
+        tags: Array.isArray(suggested.tags) && suggested.tags.length
+          ? suggested.tags.join(', ')
+          : prev.tags,
+      }));
+
+      const warnings = Array.isArray(result?.warnings) ? result.warnings.filter(Boolean) : [];
+      setScanInfo(warnings.length ? warnings[0] : 'Form auto-filled from certificate scan.');
+    } catch (err) {
+      setFileError(err.message || 'Unable to scan the certificate right now.');
+      setScanInfo('');
+    } finally {
+      setScanning(false);
     }
   };
 
@@ -67,12 +114,13 @@ export default function CertUploadModal({ isOpen, onClose, editCert }) {
     return errs;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const errs = validate();
     setFormErrors(errs);
     if (Object.keys(errs).length) return;
 
     setSaving(true);
+    setFileError('');
     const payload = {
       userId:          currentUser.id,
       title:           form.title.trim(),
@@ -86,13 +134,18 @@ export default function CertUploadModal({ isOpen, onClose, editCert }) {
       documentMimeType: docMime,
     };
 
-    if (isEdit) {
-      updateCert(editCert.id, payload);
-    } else {
-      addCert(payload);
+    try {
+      if (isEdit) {
+        await updateCert(editCert.id, payload);
+      } else {
+        await addCert(payload);
+      }
+      onClose();
+    } catch (err) {
+      setFileError(err.message || 'Failed to save certification.');
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
-    onClose();
   };
 
   return (
@@ -201,6 +254,14 @@ export default function CertUploadModal({ isOpen, onClose, editCert }) {
               >
                 🔄 Replace with a different document
               </button>
+              <GlowButton
+                type="button"
+                variant="ghost"
+                onClick={handleAutoScan}
+                loading={scanning}
+              >
+                🤖 Auto-fill with AI Scan
+              </GlowButton>
             </div>
           ) : (
             <div
@@ -223,6 +284,7 @@ export default function CertUploadModal({ isOpen, onClose, editCert }) {
             onChange={(e) => { if (e.target.files[0]) handleFile(e.target.files[0]); }}
           />
           {fileError && <div style={{ color:'var(--glow-danger)', fontSize:'0.78rem', marginTop:'0.35rem' }}>{fileError}</div>}
+          {scanInfo && <div style={{ color:'var(--text-secondary)', fontSize:'0.78rem', marginTop:'0.35rem' }}>{scanInfo}</div>}
         </div>
 
         <div style={{ display:'flex', gap:'0.75rem', justifyContent:'flex-end', marginTop:'0.5rem' }}>

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
 import { formatDate } from '../../utils/dateUtils';
+import { getGamificationLevel } from '../../utils/gamificationUtils';
 import GlowButton from '../common/GlowButton';
 
 export default function UserHeader() {
@@ -29,6 +30,21 @@ export default function UserHeader() {
         CertTracker Pro
       </div>
 
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+        <GlowButton 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => {
+            const url = `${window.location.origin}/portfolio/${currentUser.id}`;
+            navigator.clipboard.writeText(url);
+            alert('Portfolio link copied to clipboard!');
+          }}
+          title="Share your public portfolio"
+        >
+          📋 Copy Portfolio Link
+        </GlowButton>
+      </div>
+
       <div className="dash-header__actions">
         {/* Notification bell */}
         <div style={{ position: 'relative' }} ref={dropRef}>
@@ -48,7 +64,13 @@ export default function UserHeader() {
                 {unreadCount > 0 && (
                   <button
                     style={{ background:'none', border:'none', color:'var(--glow-primary)', fontSize:'0.78rem', fontWeight:600, cursor:'pointer' }}
-                    onClick={() => markAllNotificationsRead(currentUser.id)}
+                    onClick={async () => {
+                      try {
+                        await markAllNotificationsRead(currentUser.id);
+                      } catch (err) {
+                        window.alert(err.message || 'Failed to mark notifications as read.');
+                      }
+                    }}
                   >
                     Mark all read
                   </button>
@@ -71,17 +93,24 @@ export default function UserHeader() {
         </div>
 
         {/* User info */}
-        <div className="dash-header__user">
-          <div
-            className="avatar"
-            style={{ background: currentUser.avatarColor }}
-            title={currentUser.username}
-          >
-            {currentUser.username[0].toUpperCase()}
+        <div className="dash-header__user" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginLeft: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div
+              className="avatar"
+              style={{ background: currentUser.avatarColor, flexShrink: 0 }}
+              title={currentUser.username}
+            >
+              {currentUser.username[0].toUpperCase()}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontSize:'0.85rem', color:'var(--text-primary)', fontWeight: 600 }}>
+                {currentUser.username}
+              </span>
+              <span style={{ fontSize:'0.7rem', color: getGamificationLevel(currentUser.points).color, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                {getGamificationLevel(currentUser.points).label} ({currentUser.points || 0} pts)
+              </span>
+            </div>
           </div>
-          <span style={{ fontSize:'0.85rem', color:'var(--text-secondary)' }}>
-            {currentUser.username}
-          </span>
         </div>
 
         <GlowButton variant="ghost" size="sm" onClick={logout}>
