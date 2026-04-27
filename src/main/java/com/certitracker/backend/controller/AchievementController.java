@@ -3,6 +3,7 @@ package com.certitracker.backend.controller;
 import com.certitracker.backend.model.Achievement;
 import com.certitracker.backend.repository.AchievementRepository;
 import com.certitracker.backend.repository.UserRepository;
+import org.springframework.lang.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -32,14 +34,15 @@ public class AchievementController {
 
     @GetMapping("/user/{userId}")
     public Object getByUser(@PathVariable String userId) {
-        return achievementRepository.findByUserIdOrderByDateDesc(userId);
+        return achievementRepository.findByUserIdOrderByDateDesc(requireId(userId, "userId"));
     }
 
     @PostMapping
     public Achievement create(@RequestBody Map<String, Object> body) {
         Achievement item = new Achievement();
+        String userId = getRequiredString(body, "userId");
         item.setId(UUID.randomUUID().toString());
-        item.setUserId(getRequiredString(body, "userId"));
+        item.setUserId(userId);
         item.setTitle(getRequiredString(body, "title"));
         item.setType(getOptionalString(body, "type", "achievement"));
         item.setDescription(getOptionalString(body, "description", ""));
@@ -48,7 +51,7 @@ public class AchievementController {
         
         achievementRepository.save(item);
         
-        userRepository.findById(item.getUserId()).ifPresent(user -> {
+        userRepository.findById(Objects.requireNonNull(userId)).ifPresent(user -> {
             user.setPoints(user.getPoints() + 50);
             userRepository.save(user);
         });
@@ -58,7 +61,8 @@ public class AchievementController {
 
     @PutMapping("/{id}")
     public Achievement update(@PathVariable String id, @RequestBody Map<String, Object> body) {
-        Achievement item = achievementRepository.findById(id)
+        String achievementId = requireId(id, "id");
+        Achievement item = achievementRepository.findById(achievementId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Achievement not found"));
 
         item.setTitle(getOptionalString(body, "title", item.getTitle()));
@@ -73,7 +77,14 @@ public class AchievementController {
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable String id) {
-        achievementRepository.deleteById(id);
+        achievementRepository.deleteById(requireId(id, "id"));
+    }
+
+    private static @NonNull String requireId(String value, String fieldName) {
+        if (value == null || value.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " is required");
+        }
+        return value;
     }
 
     private static String getRequiredString(Map<String, Object> body, String key) {
@@ -81,7 +92,7 @@ public class AchievementController {
         if (value == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, key + " is required");
         }
-        return String.valueOf(value);
+        return value.toString();
     }
 
     private static String getOptionalString(Map<String, Object> body, String key, String defaultValue) {

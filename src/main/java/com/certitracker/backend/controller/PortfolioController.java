@@ -4,6 +4,7 @@ import com.certitracker.backend.model.Certification;
 import com.certitracker.backend.model.User;
 import com.certitracker.backend.repository.CertificationRepository;
 import com.certitracker.backend.repository.UserRepository;
+import org.springframework.lang.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +31,7 @@ public class PortfolioController {
 
     @GetMapping("/{userId}")
     public Map<String, Object> getPublicPortfolio(@PathVariable String userId) {
-        User user = userRepository.findById(userId)
+        User user = userRepository.findById(requireId(userId, "userId"))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
 
         List<Certification> certs = getUserCertificationsSafe(userId);
@@ -86,10 +86,10 @@ public class PortfolioController {
         return value == null ? "" : value;
     }
 
-    private static List<String> splitTags(String csv) {
-        if (csv == null || csv.isBlank()) {
-            return new ArrayList<>();
+    private static @NonNull String requireId(String value, String fieldName) {
+        if (value == null || value.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " is required");
         }
-        return Arrays.stream(csv.split(",")).map(String::trim).filter(s -> !s.isBlank()).toList();
+        return value;
     }
 }

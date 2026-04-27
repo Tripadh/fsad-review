@@ -2,6 +2,7 @@ package com.certitracker.backend.controller;
 
 import com.certitracker.backend.model.Notification;
 import com.certitracker.backend.repository.NotificationRepository;
+import org.springframework.lang.NonNull;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,7 +29,7 @@ public class NotificationController {
 
     @GetMapping("/user/{userId}")
     public List<Notification> getByUser(@PathVariable String userId) {
-        return notificationRepository.findByRecipientUserIdOrderByCreatedAtDesc(userId);
+        return notificationRepository.findByRecipientUserIdOrderByCreatedAtDesc(requireId(userId, "userId"));
     }
 
     @PostMapping
@@ -47,7 +48,7 @@ public class NotificationController {
 
     @PutMapping("/{id}/read")
     public Notification markRead(@PathVariable String id) {
-        Notification note = notificationRepository.findById(id)
+        Notification note = notificationRepository.findById(requireId(id, "id"))
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Notification not found"));
         note.setRead(true);
         return notificationRepository.save(note);
@@ -55,9 +56,16 @@ public class NotificationController {
 
     @PutMapping("/user/{userId}/read-all")
     public void markAllRead(@PathVariable String userId) {
-        List<Notification> notifications = notificationRepository.findByRecipientUserIdOrderByCreatedAtDesc(userId);
+        List<Notification> notifications = notificationRepository.findByRecipientUserIdOrderByCreatedAtDesc(requireId(userId, "userId"));
         notifications.forEach(n -> n.setRead(true));
         notificationRepository.saveAll(notifications);
+    }
+
+    private static @NonNull String requireId(String value, String fieldName) {
+        if (value == null || value.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " is required");
+        }
+        return value;
     }
 
     private static String getRequiredString(Map<String, Object> body, String key) {
@@ -65,7 +73,7 @@ public class NotificationController {
         if (value == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, key + " is required");
         }
-        return String.valueOf(value);
+        return value.toString();
     }
 
     private static String getOptionalString(Map<String, Object> body, String key, String defaultValue) {

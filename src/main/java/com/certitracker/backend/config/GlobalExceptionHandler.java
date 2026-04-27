@@ -16,9 +16,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<Map<String, Object>> handleResponseStatusException(ResponseStatusException ex) {
         HttpStatus status = HttpStatus.resolve(ex.getStatusCode().value());
-        String message = ex.getReason() == null || ex.getReason().isBlank()
+        String reason = ex.getReason();
+        String message = reason == null || reason.isBlank()
                 ? "Request failed"
-                : ex.getReason();
+            : reason;
 
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", Instant.now().toString());

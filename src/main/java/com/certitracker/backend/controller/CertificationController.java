@@ -3,12 +3,11 @@ package com.certitracker.backend.controller;
 import com.certitracker.backend.dto.CertificateScanRequest;
 import com.certitracker.backend.dto.RenewalRequest;
 import com.certitracker.backend.model.Certification;
-import com.certitracker.backend.model.User;
 import com.certitracker.backend.repository.CertificationRepository;
 import com.certitracker.backend.repository.UserRepository;
 import com.certitracker.backend.service.CertificateScanService;
+import org.springframework.lang.NonNull;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +28,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 @RestController
@@ -60,7 +60,8 @@ public class CertificationController {
 
     @GetMapping("/{id}")
     public Map<String, Object> getById(@PathVariable String id) {
-        Certification cert = certificationRepository.findById(id)
+        String certificationId = requireId(id, "id");
+        Certification cert = certificationRepository.findById(certificationId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Certification not found"));
         return toMapWithLob(cert);
     }
@@ -83,8 +84,9 @@ public class CertificationController {
     @PostMapping
     public Map<String, Object> create(@RequestBody Map<String, Object> body) {
         Certification cert = new Certification();
+        String userId = getRequiredString(body, "userId");
         cert.setId(UUID.randomUUID().toString());
-        cert.setUserId(getRequiredString(body, "userId"));
+        cert.setUserId(userId);
         cert.setTitle(getRequiredString(body, "title"));
         cert.setIssuer(getRequiredString(body, "issuer"));
         cert.setCredentialId(getOptionalString(body, "credentialId", ""));
@@ -102,7 +104,7 @@ public class CertificationController {
         certificationRepository.save(cert);
 
         if ("verified".equalsIgnoreCase(cert.getVerificationStatus())) {
-            userRepository.findById(cert.getUserId()).ifPresent(user -> {
+            userRepository.findById(Objects.requireNonNull(userId)).ifPresent(user -> {
                 user.setPoints(user.getPoints() + 100);
                 userRepository.save(user);
             });
@@ -113,7 +115,8 @@ public class CertificationController {
 
     @PutMapping("/{id}")
     public Map<String, Object> update(@PathVariable String id, @RequestBody Map<String, Object> body) {
-        Certification cert = certificationRepository.findById(id)
+        String certificationId = requireId(id, "id");
+        Certification cert = certificationRepository.findById(certificationId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Certification not found"));
 
         cert.setTitle(getOptionalString(body, "title", cert.getTitle()));
@@ -143,10 +146,13 @@ public class CertificationController {
 
         boolean isVerifiedNow = "verified".equalsIgnoreCase(cert.getVerificationStatus());
         if (!wasVerified && isVerifiedNow) {
-            userRepository.findById(cert.getUserId()).ifPresent(user -> {
-                user.setPoints(user.getPoints() + 100);
-                userRepository.save(user);
-            });
+            String certUserId = cert.getUserId();
+            if (certUserId != null && !certUserId.isBlank()) {
+                userRepository.findById(certUserId).ifPresent(user -> {
+                    user.setPoints(user.getPoints() + 100);
+                    userRepository.save(user);
+                });
+            }
         }
 
         return toMapWithLob(cert);
@@ -154,7 +160,8 @@ public class CertificationController {
 
     @PostMapping("/{id}/renew")
     public Map<String, Object> renew(@PathVariable String id, @RequestBody RenewalRequest body) {
-        Certification cert = certificationRepository.findById(id)
+        String certificationId = requireId(id, "id");
+        Certification cert = certificationRepository.findById(certificationId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Certification not found"));
 
         cert.setExpiryDate(body.newExpiryDate());
@@ -167,7 +174,7 @@ public class CertificationController {
 
     @DeleteMapping("/{id}")
     public void delete(@PathVariable String id) {
-        certificationRepository.deleteById(id);
+        certificationRepository.deleteById(requireId(id, "id"));
     }
 
     @GetMapping("/suggestions/{userId}")
@@ -513,7 +520,14 @@ public class CertificationController {
         if (value == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, key + " is required");
         }
-        return String.valueOf(value);
+        return value.toString();
+    }
+
+    private static @NonNull String requireId(String value, String fieldName) {
+        if (value == null || value.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, fieldName + " is required");
+        }
+        return value;
     }
 
     private static String getOptionalString(Map<String, Object> body, String key, String defaultValue) {
