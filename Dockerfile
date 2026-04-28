@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jdk-jammy AS build
+FROM maven:3.9.9-eclipse-temurin-21-jammy AS build
 
 WORKDIR /workspace
 
